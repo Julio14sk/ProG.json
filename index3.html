@@ -80,69 +80,144 @@
 </head>
 
 <body>
-    <div class="container">
-        <h2>Iniciar Sesión</h2>
-        <label for="emailInput">Correo Electrónico</label>
-        <input type="text" id="emailInput" />
-        <label for="passwordInput">Clave de Acceso</label>
-        <input type="password" id="passwordInput" />
-        <button id="loginButton">Ingresar</button>
+    <h1>Tabla de Datos</h1>
 
-        <!-- Mostrar la tabla de usuarios después de iniciar sesión -->
-        <table id="userTable">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Apellido</th>
-                    <th>Correo Electrónico</th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
-    </div>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Nombre de Usuario</th>
+                <th>Email</th>
+                <th>Teléfono</th>
+                <th>Página Web</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="tabla-body">
+        </tbody>
+    </table>
+
+    <form id="formulario">
+        <h2>Agregar / Editar Usuario</h2>
+        <label for="nombre">Nombre:</label>
+        <input type="text" id="nombre" required>
+        <br>
+        <label for="usuario">Nombre de Usuario:</label>
+        <input type="text" id="usuario" required>
+        <br>
+        <label for="email">Email:</label>
+        <input type="email" id="email" required>
+        <br>
+        <label for="telefono">Teléfono:</label>
+        <input type="tel" id="telefono" required>
+        <br>
+        <label for="web">Página Web:</label>
+        <input type="url" id="web" required>
+        <br>
+        <input type="submit" id="boton-guardar" value="Guardar">
+        <input type="button" id="boton-cancelar" value="Cancelar" onclick="cancelarEdicion()">
+    </form>
 
     <script>
-        const emailInput = document.getElementById('emailInput');
-        const passwordInput = document.getElementById('passwordInput');
-        const loginButton = document.getElementById('loginButton');
-        const userTable = document.getElementById('userTable');
-        const tbody = userTable.querySelector('tbody');
+        var datosJSON = [];
+        var modoEdicion = false;
+        var indiceEdicion = -1;
 
-        const usersData = [
-            {
-                "name": "julio",
-                "lastname": "valdovinos",
-                "email": "jvaldovino_20@alu.uabcs.mx",
-                "password": "12345",
-                "role_id": 1,
-            }
-        ];
+        var formulario = document.getElementById("formulario");
+        var botonGuardar = document.getElementById("boton-guardar");
+        var botonCancelar = document.getElementById("boton-cancelar");
 
-        loginButton.addEventListener('click', () => {
-            const user = usersData.find(user => user.email === emailInput.value && user.password === passwordInput.value);
+        formulario.addEventListener("submit", function (event) {
+            event.preventDefault();
 
-            if (user) {
-                alert("¡Inicio de sesión exitoso!");
-                mostrarTabla(user);
+            var nombre = document.getElementById("nombre").value;
+            var usuario = document.getElementById("usuario").value;
+            var email = document.getElementById("email").value;
+            var telefono = document.getElementById("telefono").value;
+            var web = document.getElementById("web").value;
+
+            if (modoEdicion) {
+                // Modo edición
+                datosJSON[indiceEdicion] = {
+                    nombre: nombre,
+                    usuario: usuario,
+                    email: email,
+                    telefono: telefono,
+                    web: web
+                };
+                modoEdicion = false;
+                indiceEdicion = -1;
             } else {
-                alert("Credenciales incorrectas. Por favor, inténtalo de nuevo.");
+                // Modo creación
+                var nuevoDato = {
+                    nombre: nombre,
+                    usuario: usuario,
+                    email: email,
+                    telefono: telefono,
+                    web: web
+                };
+                datosJSON.push(nuevoDato);
             }
+
+            cargarDatos();
+            formulario.reset();
         });
 
-        function mostrarTabla(user) {
-            tbody.innerHTML = '';
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${user.id || ''}</td>
-                <td>${user.name}</td>
-                <td>${user.lastname}</td>
-                <td>${user.email}</td>
-            `;
-            tbody.appendChild(row);
-            userTable.style.display = 'table';
+        function cargarDatos() {
+            var tablaBody = document.getElementById("tabla-body");
+            tablaBody.innerHTML = "";
+
+            for (var i = 0; i < datosJSON.length; i++) {
+                var fila = document.createElement("tr");
+                var datos = datosJSON[i];
+
+                fila.innerHTML = `
+                    <td>${datos.nombre}</td>
+                    <td>${datos.usuario}</td>
+                    <td>${datos.email}</td>
+                    <td>${datos.telefono}</td>
+                    <td>${datos.web}</td>
+                    <td>
+                        <button onclick="editar(${i})">Editar</button>
+                        <button onclick="eliminar(${i})">Eliminar</button>
+                    </td>
+                `;
+
+                tablaBody.appendChild(fila);
+            }
         }
+
+        function editar(index) {
+            var datos = datosJSON[index];
+            document.getElementById("nombre").value = datos.nombre;
+            document.getElementById("usuario").value = datos.usuario;
+            document.getElementById("email").value = datos.email;
+            document.getElementById("telefono").value = datos.telefono;
+            document.getElementById("web").value = datos.web;
+
+            modoEdicion = true;
+            indiceEdicion = index;
+
+            botonGuardar.value = "Actualizar";
+            botonCancelar.style.display = "inline";
+        }
+
+        function eliminar(index) {
+            datosJSON.splice(index, 1);
+            cargarDatos();
+        }
+
+        function cancelarEdicion() {
+            modoEdicion = false;
+            indiceEdicion = -1;
+
+            botonGuardar.value = "Guardar";
+            botonCancelar.style.display = "none";
+
+            formulario.reset();
+        }
+
+        cargarDatos();
     </script>
 </body>
 
